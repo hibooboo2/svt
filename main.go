@@ -11,6 +11,12 @@ func main() {
 
 	args := flag.Args()
 
+	switch len(args) {
+	case 1, 2:
+	default:
+		panic(args)
+	}
+
 	var v Version
 	var v2 Version
 	switch *mode {
