@@ -9,8 +9,8 @@ import (
 
 type PROD string
 
-func (u PROD) Version(_ ...Version) Version {
-	parts := strings.Split(string(u), "-")
+func (p PROD) Version(_ ...Version) Version {
+	parts := []string{string(p[0]), string(p[1:])}
 	if len(parts) != 2 {
 		return NewProdTag(1)
 	}
@@ -32,5 +32,5 @@ func (u PROD) Version(_ ...Version) Version {
 }
 
 func NewProdTag(num int) PROD {
-	return PROD(fmt.Sprintf("r-%s.%d", dateStringUATFormat(time.Now()), num))
+	return PROD(fmt.Sprintf("r%s.%d", dateStringUATFormat(time.Now()), num))
 }
