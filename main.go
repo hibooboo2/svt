@@ -25,6 +25,8 @@ func main() {
 		v2 = SemVer(args[1])
 	case "uat":
 		v = UAT(args[0])
+	case "prod":
+		v = PROD(args[0])
 	}
 	v = v.Version(v2)
 	fmt.Println(v)
