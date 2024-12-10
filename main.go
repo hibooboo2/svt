@@ -58,6 +58,9 @@ func main() {
 	var v2 Version
 	switch *mode {
 	case "dev":
+		if len(args) != 2 {
+
+		}
 		v = SemVer(args[0])
 		v2 = SemVer(args[1])
 	case "uat":
