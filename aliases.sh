@@ -4,12 +4,12 @@ tagIfNoTag(){
     git checkout development
     git pull
     if [ "$(git tag --points-at HEAD | wc -l)" -eq 0 ]; then
-        echo "No tags found on the current commit."
+        echo "No tags found on the current commit tagging with: $1"
         git tag $1
-        git push --tag
     else
-        echo "Commit already tagged"
+        echo "Commit already tagged: $(git tag --points-at HEAD)"
     fi
+    git push --tag
 }
 
 alias gtags='git describe --tags | cut -f 1-2 -d "-" '
