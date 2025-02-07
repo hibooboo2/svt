@@ -13,7 +13,7 @@ tagIfNoTag(){
     else
         echo "Commit already tagged: $(git tag --points-at HEAD)"
     fi
-    git push --tag
+    git push --tag $2 || git tag -d $1
 }
 
 alias gtags='git describe --tags | cut -f 1-2 -d "-" '
@@ -22,17 +22,17 @@ gntag(){
     pull development
     TAGNAME=$(git describe --tags --match v*.*.* | cut -f 1 -d "-"| xargs -n 1 svt -mode dev v0.0.1)
     echo $TAGNAME
-    tagIfNoTag $TAGNAME
+    tagIfNoTag $TAGNAME $1
 }
 gutag(){
     pull staging
     TAGNAME=$(git describe --tags --match uat-* | cut -f 1-2 -d "-"| xargs -n 1 svt -mode uat)
     echo $TAGNAME
-    tagIfNoTag $TAGNAME
+    tagIfNoTag $TAGNAME $1
 }
 gptag(){
     pull production
     TAGNAME=$(git describe --tags --match r* | cut -f 1 -d "-"| xargs -n 1 svt -mode prod)
     echo $TAGNAME
-    tagIfNoTag $TAGNAME
+    tagIfNoTag $TAGNAME $1
 }
