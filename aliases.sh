@@ -32,7 +32,7 @@ gutag(){
 }
 gptag(){
     pull production
-    TAGNAME=$(git describe --tags --match r* | cut -f 1 -d "-"| xargs -n 1 svt -mode prod)
+    TAGNAME=$(git describe --tags --match r*.* | cut -f 1 -d "-"| xargs -n 1 svt -mode prod)
     echo $TAGNAME
     tagIfNoTag $TAGNAME $1
 }
