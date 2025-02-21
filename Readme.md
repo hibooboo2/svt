@@ -13,3 +13,16 @@ go install github.com/hibooboo2/svt@latest
 ```
 . $THIS_FOLDER/aliases.sh
 ```
+
+# Usage
+
+gntag
+gutag
+gptag
+
+Each of these will checkout development/ staging / production
+respectively and then pull and if the commit is not tagged it will tag with the next tag in sequence.
+
+If you have git pre push / hooks and you want to skip verification you can add:
+
+--no-verify
