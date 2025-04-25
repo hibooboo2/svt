@@ -20,7 +20,7 @@ tagIfNoTag(){
     else
         echo "Commit already tagged: $(git tag --points-at HEAD)"
     fi
-    git push --tag $2 || git tag -d $1
+    git push --tag $3 || git tag -d $1
 }
 
 alias gtags='git describe --tags | cut -f 1-2 -d "-" '
