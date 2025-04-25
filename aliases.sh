@@ -26,34 +26,34 @@ tagIfNoTag(){
 alias gtags='git describe --tags | cut -f 1-2 -d "-" '
 
 ntag(){
-    pull development
     TAGNAME=$(git describe --tags --match v*.*.* | cut -f 1 -d "-"| xargs -n 1 svt -mode dev v0.0.1)
     echo $TAGNAME
 }
 
 gntag(){
+    pull development
     ntag
     tagIfNoTag $TAGNAME development $1
 }
 
 utag(){
-    pull staging
     TAGNAME=$(git describe --tags --match uat-* | cut -f 1-2 -d "-"| xargs -n 1 svt -mode uat)
     echo $TAGNAME
 }
 
 gutag(){
+    pull staging
     utag
     tagIfNoTag $TAGNAME staging $1
 }
 
 ptag(){
-    pull production
     TAGNAME=$(git describe --tags --match r*.* | cut -f 1 -d "-"| xargs -n 1 svt -mode prod)
     echo $TAGNAME
 }
 
 gptag(){
+    pull production
     ptag
     tagIfNoTag $TAGNAME production $1
 }
