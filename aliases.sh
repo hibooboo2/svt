@@ -26,6 +26,7 @@ tagIfNoTag(){
 alias gtags='git describe --tags | cut -f 1-2 -d "-" '
 
 ntag(){
+    git fetch --all --tags
     TAGNAME=$(git describe --tags --match v*.*.* | cut -f 1 -d "-"| xargs -n 1 svt -mode dev v0.0.1)
     echo $TAGNAME
 }
@@ -37,6 +38,7 @@ gntag(){
 }
 
 utag(){
+    git fetch --all --tags
     TAGNAME=$(git describe --tags --match uat-* | cut -f 1-2 -d "-"| xargs -n 1 svt -mode uat)
     echo $TAGNAME
 }
@@ -48,6 +50,7 @@ gutag(){
 }
 
 ptag(){
+    git fetch --all --tags
     TAGNAME=$(git describe --tags --match r*.* | cut -f 1 -d "-"| xargs -n 1 svt -mode prod)
     echo $TAGNAME
 }
@@ -56,4 +59,10 @@ gptag(){
     pull production
     ptag
     tagIfNoTag $TAGNAME production $1
+}
+
+gmtag(){
+    pull main
+    ntag
+    tagIfNoTag $TAGNAME main $1
 }
