@@ -42,11 +42,29 @@ func main() {
 		os.Exit(1)
 	}
 
+	var tagTypeFromUser string
+	if len(os.Args) > 2 {
+		switch os.Args[2] {
+		case "v", "uat", "r":
+			tagTypeFromUser = os.Args[2]
+		case "dev":
+			tagTypeFromUser = "v"
+		case "staging":
+			tagTypeFromUser = "uat"
+		case "prod":
+			tagTypeFromUser = "r"
+		default:
+			fmt.Fprintf(os.Stderr, "Invalid tag type: %s\n", os.Args[2])
+			os.Exit(1)
+		}
+	}
+
 	// Lipgloss styles
 	titleStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#7D56F4"))
 	tagStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#00FF87")).Bold(true)
 	prevTagStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#999999"))
 	noneStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#FF5F5F")).Italic(true)
+	diffStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#DCDCDC")).Bold(true).Italic(true).Underline(true)
 
 	cmd := exec.Command("git", "for-each-ref", "--sort=creatordate",
 		"--format=%(refname:short) %(creatordate:iso)", "refs/tags")
@@ -104,6 +122,9 @@ func main() {
 	}
 
 	for _, tagType := range []string{"v", "uat", "r"} {
+		if tagTypeFromUser != "" && tagType != tagTypeFromUser {
+			continue
+		}
 		data := typeData[tagType]
 		if len(data.Todays) > 0 {
 			latest := data.Todays[0]
@@ -114,6 +135,7 @@ func main() {
 			fmt.Println(titleStyle.Render(targetDate), "\t\t\t", tagStyle.Render(latest.Name))
 			if data.Previous != nil {
 				fmt.Println("Prev: ", int(targetTime.Truncate(time.Hour*24).Sub(data.Previous.Date.Truncate(time.Hour*24))/time.Hour/24), "Days Before\t\t", prevTagStyle.Render(data.Previous.Name))
+				fmt.Println("\t\t", diffStyle.Render("git diff ", data.Previous.Name, " ", latest.Name))
 			} else {
 				fmt.Println("Prev: ", noneStyle.Render("(none)"))
 			}
