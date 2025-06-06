@@ -111,12 +111,11 @@ func main() {
 				latest = compareTags(tagType, latest, t)
 			}
 
-			fmt.Println(titleStyle.Render(fmt.Sprintf("%s tag on %s:\t\t\t\t", tagType, targetDate)),
-				tagStyle.Render(latest.Name))
+			fmt.Println(titleStyle.Render(targetDate), "\t\t\t", tagStyle.Render(latest.Name))
 			if data.Previous != nil {
-				fmt.Println("  Previous "+tagType+" Date: "+data.Previous.Date.Format("2006-01-02")+"\t\ttag:", prevTagStyle.Render(data.Previous.Name))
+				fmt.Println("Prev: ", int(targetTime.Truncate(time.Hour*24).Sub(data.Previous.Date.Truncate(time.Hour*24))/time.Hour/24), "Days Before\t\t", prevTagStyle.Render(data.Previous.Name))
 			} else {
-				fmt.Println("  Previous "+tagType+" tag:", noneStyle.Render("(none)"))
+				fmt.Println("Prev: ", noneStyle.Render("(none)"))
 			}
 		} else {
 			fmt.Println(noneStyle.Render("No " + tagType + " tag found on " + targetDate))
