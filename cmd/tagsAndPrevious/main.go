@@ -64,9 +64,9 @@ func main() {
 	scanner := bufio.NewScanner(stdout)
 
 	typeData := map[string]*TagSet{
-		"r":   &TagSet{},
-		"v":   &TagSet{},
-		"uat": &TagSet{},
+		"r":   {},
+		"v":   {},
+		"uat": {},
 	}
 
 	for scanner.Scan() {
@@ -88,7 +88,10 @@ func main() {
 				if tagTime.Format("2006-01-02") == targetTime.Format("2006-01-02") {
 					typeData[tagType].Todays = append(typeData[tagType].Todays, &TagInfo{tag, tagTime})
 				} else if tagTime.Before(targetTime) {
-					typeData[tagType].Previous = &TagInfo{tag, tagTime}
+					prev := typeData[tagType].Previous
+					if prev == nil || tagTime.After(prev.Date) {
+						typeData[tagType].Previous = &TagInfo{tag, tagTime}
+					}
 				}
 				break
 			}
@@ -100,17 +103,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	for tagType, data := range typeData {
+	for _, tagType := range []string{"v", "uat", "r"} {
+		data := typeData[tagType]
 		if len(data.Todays) > 0 {
 			latest := data.Todays[0]
 			for _, t := range data.Todays[1:] {
 				latest = compareTags(tagType, latest, t)
 			}
 
-			fmt.Println(titleStyle.Render(fmt.Sprintf("%s tag on %s:", tagType, targetDate)),
+			fmt.Println(titleStyle.Render(fmt.Sprintf("%s tag on %s:\t\t\t\t", tagType, targetDate)),
 				tagStyle.Render(latest.Name))
 			if data.Previous != nil {
-				fmt.Println("  Previous "+tagType+" tag:", prevTagStyle.Render(data.Previous.Name))
+				fmt.Println("  Previous "+tagType+" Date: "+data.Previous.Date.Format("2006-01-02")+"\t\ttag:", prevTagStyle.Render(data.Previous.Name))
 			} else {
 				fmt.Println("  Previous "+tagType+" tag:", noneStyle.Render("(none)"))
 			}
