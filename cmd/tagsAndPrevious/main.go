@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -29,34 +30,31 @@ type TagSet struct {
 }
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "Usage: %s YYYY-MM-DD\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "Example: %s %s\n", os.Args[0], time.Now().Format("2006-01-02"))
-		os.Args = append(os.Args, time.Now().Format("2006-01-02"))
-	}
-	targetDate := os.Args[1]
+	justDiff := flag.Bool("s", false, "(simple) Only print the git diff command if there is one")
+	targetDate := flag.String("d", time.Now().Format("2006-01-02"), "Target date")
+	userTagType := flag.String("t", "", "Tag type")
+	flag.Parse()
 
-	targetTime, err := time.Parse("2006-01-02", targetDate)
+	targetTime, err := time.Parse("2006-01-02", *targetDate)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Invalid date format: %v\n", err)
 		os.Exit(1)
 	}
 
-	var tagTypeFromUser string
-	if len(os.Args) > 2 {
-		switch os.Args[2] {
-		case "v", "uat", "r":
-			tagTypeFromUser = os.Args[2]
-		case "dev":
-			tagTypeFromUser = "v"
-		case "staging":
-			tagTypeFromUser = "uat"
-		case "prod":
-			tagTypeFromUser = "r"
-		default:
-			fmt.Fprintf(os.Stderr, "Invalid tag type: %s\n", os.Args[2])
-			os.Exit(1)
-		}
+	tagTypeFromUser := ""
+	switch *userTagType {
+	case "v", "uat", "r":
+		tagTypeFromUser = *userTagType
+	case "dev":
+		tagTypeFromUser = "v"
+	case "staging":
+		tagTypeFromUser = "uat"
+	case "prod":
+		tagTypeFromUser = "r"
+	case "":
+	default:
+		fmt.Fprintf(os.Stderr, "Invalid tag type: %s\n", *userTagType)
+		os.Exit(1)
 	}
 
 	// Lipgloss styles
@@ -132,7 +130,14 @@ func main() {
 				latest = compareTags(tagType, latest, t)
 			}
 
-			fmt.Println(titleStyle.Render(targetDate), "\t\t\t", tagStyle.Render(latest.Name))
+			if *justDiff {
+				if data.Previous != nil {
+					fmt.Println("git diff ", data.Previous.Name, " ", latest.Name)
+				}
+				continue
+			}
+
+			fmt.Println(titleStyle.Render(*targetDate), "\t\t\t", tagStyle.Render(latest.Name))
 			if data.Previous != nil {
 				fmt.Println("Prev: ", int(targetTime.Truncate(time.Hour*24).Sub(data.Previous.Date.Truncate(time.Hour*24))/time.Hour/24), "Days Before\t\t", prevTagStyle.Render(data.Previous.Name))
 				fmt.Println("\t\t", diffStyle.Render("git diff ", data.Previous.Name, " ", latest.Name))
@@ -140,7 +145,10 @@ func main() {
 				fmt.Println("Prev: ", noneStyle.Render("(none)"))
 			}
 		} else {
-			fmt.Println(noneStyle.Render("No " + tagType + " tag found on " + targetDate))
+			if *justDiff {
+				continue
+			}
+			fmt.Println(noneStyle.Render("No " + tagType + " tag found on " + *targetDate))
 		}
 	}
 }
