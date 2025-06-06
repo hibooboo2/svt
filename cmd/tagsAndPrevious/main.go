@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/charmbracelet/lipgloss"
 )
 
 type TagInfo struct {
@@ -29,14 +31,18 @@ func main() {
 	}
 	targetDate := os.Args[1]
 
-	// Parse input date
 	targetTime, err := time.Parse("2006-01-02", targetDate)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Invalid date format: %v\n", err)
 		os.Exit(1)
 	}
 
-	// Run git command to get tags and creation dates
+	// Lipgloss styles
+	titleStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#7D56F4"))
+	tagStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#00FF87")).Bold(true)
+	prevTagStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#999999"))
+	noneStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#FF5F5F")).Italic(true)
+
 	cmd := exec.Command("git", "for-each-ref", "--sort=creatordate",
 		"--format=%(refname:short) %(creatordate:iso)", "refs/tags")
 	stdout, err := cmd.StdoutPipe()
@@ -52,7 +58,6 @@ func main() {
 
 	scanner := bufio.NewScanner(stdout)
 
-	// Keep track of most recent and previous tags for each type
 	typeData := map[string]struct {
 		Previous *TagInfo
 		Today    *TagInfo
@@ -95,18 +100,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Print results
+	// Print output
 	for tagType := range tagPatterns {
 		data := typeData[tagType]
 		if data.Today != nil {
-			fmt.Printf("%s tag on %s: %s\n", tagType, targetDate, data.Today.Name)
+			fmt.Println(titleStyle.Render(fmt.Sprintf("%s tag on %s:", tagType, targetDate)),
+				tagStyle.Render(data.Today.Name))
 			if data.Previous != nil {
-				fmt.Printf("  Previous %s tag: %s\n", tagType, data.Previous.Name)
+				fmt.Println("  Previous "+tagType+" tag:",
+					prevTagStyle.Render(data.Previous.Name))
 			} else {
-				fmt.Printf("  Previous %s tag: (none)\n", tagType)
+				fmt.Println("  Previous "+tagType+" tag:", noneStyle.Render("(none)"))
 			}
 		} else {
-			fmt.Printf("No %s tag found on %s\n", tagType, targetDate)
+			fmt.Println(noneStyle.Render("No " + tagType + " tag found on " + targetDate))
 		}
 	}
 }
