@@ -23,6 +23,11 @@ var tagPatterns = map[string]*regexp.Regexp{
 	"uat": regexp.MustCompile(`^uat-\d{8}\.\d+$`),
 }
 
+type TagSet struct {
+	Previous *TagInfo
+	Todays   []*TagInfo
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Fprintf(os.Stderr, "Usage: %s YYYY-MM-DD\n", os.Args[0])
@@ -58,10 +63,11 @@ func main() {
 
 	scanner := bufio.NewScanner(stdout)
 
-	typeData := map[string]struct {
-		Previous *TagInfo
-		Today    *TagInfo
-	}{}
+	typeData := map[string]*TagSet{
+		"r":   &TagSet{},
+		"v":   &TagSet{},
+		"uat": &TagSet{},
+	}
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -80,15 +86,9 @@ func main() {
 		for tagType, pattern := range tagPatterns {
 			if pattern.MatchString(tag) {
 				if tagTime.Format("2006-01-02") == targetTime.Format("2006-01-02") {
-					if typeData[tagType].Today == nil {
-						data := typeData[tagType]
-						data.Today = &TagInfo{tag, tagTime}
-						typeData[tagType] = data
-					}
+					typeData[tagType].Todays = append(typeData[tagType].Todays, &TagInfo{tag, tagTime})
 				} else if tagTime.Before(targetTime) {
-					data := typeData[tagType]
-					data.Previous = &TagInfo{tag, tagTime}
-					typeData[tagType] = data
+					typeData[tagType].Previous = &TagInfo{tag, tagTime}
 				}
 				break
 			}
@@ -100,15 +100,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Print output
-	for tagType := range tagPatterns {
-		data := typeData[tagType]
-		if data.Today != nil {
+	for tagType, data := range typeData {
+		if len(data.Todays) > 0 {
+			latest := data.Todays[0]
+			for _, t := range data.Todays[1:] {
+				latest = compareTags(tagType, latest, t)
+			}
+
 			fmt.Println(titleStyle.Render(fmt.Sprintf("%s tag on %s:", tagType, targetDate)),
-				tagStyle.Render(data.Today.Name))
+				tagStyle.Render(latest.Name))
 			if data.Previous != nil {
-				fmt.Println("  Previous "+tagType+" tag:",
-					prevTagStyle.Render(data.Previous.Name))
+				fmt.Println("  Previous "+tagType+" tag:", prevTagStyle.Render(data.Previous.Name))
 			} else {
 				fmt.Println("  Previous "+tagType+" tag:", noneStyle.Render("(none)"))
 			}
@@ -116,4 +118,39 @@ func main() {
 			fmt.Println(noneStyle.Render("No " + tagType + " tag found on " + targetDate))
 		}
 	}
+}
+
+func compareTags(tagType string, a, b *TagInfo) *TagInfo {
+	switch tagType {
+	case "r", "uat":
+		// Compare by the numeric suffix after the last dot
+		getSuffix := func(tag string) int {
+			parts := strings.Split(tag, ".")
+			if len(parts) < 2 {
+				return 0
+			}
+			var n int
+			fmt.Sscanf(parts[len(parts)-1], "%d", &n)
+			return n
+		}
+		if getSuffix(a.Name) >= getSuffix(b.Name) {
+			return a
+		}
+		return b
+
+	case "v":
+		// Format: vX.Y.Z
+		parseVer := func(tag string) (int, int, int) {
+			var major, minor, patch int
+			fmt.Sscanf(tag, "v%d.%d.%d", &major, &minor, &patch)
+			return major, minor, patch
+		}
+		a1, a2, a3 := parseVer(a.Name)
+		b1, b2, b3 := parseVer(b.Name)
+		if a1 > b1 || (a1 == b1 && a2 > b2) || (a1 == b1 && a2 == b2 && a3 >= b3) {
+			return a
+		}
+		return b
+	}
+	return a
 }
