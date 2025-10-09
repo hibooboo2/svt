@@ -37,6 +37,19 @@ gntag(){
     tagIfNoTag $TAGNAME development $1
 }
 
+ttag(){
+    git fetch --all --tags
+    TAGNAME=$(git describe --tags --match v*.*.* | cut -f 1 -d "-")
+    echo $TAGNAME-test
+}
+
+gttag(){
+    git fetch --all
+    ttag
+    tagIfNoTag $TAGNAME $(git branch --show-current) $1
+}
+
+
 utag(){
     git fetch --all --tags
     TAGNAME=$(git describe --tags --match uat-* | cut -f 1-2 -d "-"| xargs -n 1 svt -mode uat)
