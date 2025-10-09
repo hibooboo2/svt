@@ -64,7 +64,7 @@ gttag(){
     git fetch --all
     ttag
     echo $TAGNAME
-    tagIfNoTag $TAGNAME $(git branch --show-current)
+    tagIfNoTag $TAGNAME $(git branch --show-current) $1
 }
 
 
