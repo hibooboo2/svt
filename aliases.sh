@@ -37,6 +37,37 @@ gntag(){
     tagIfNoTag $TAGNAME development $1
 }
 
+ttag() {
+    git fetch --all --tags
+
+    # Get the latest tag matching v*.*.*
+    BASE_TAG=$(git describe --tags --match "v*.*.*" --abbrev=0)
+
+    # Check if the latest tag already has "-test" suffix
+    if [[ "$BASE_TAG" == *-test* ]]; then
+        # Extract base version (before "-test") and current test number
+        MAIN_TAG="${BASE_TAG%-test*}"
+        CURRENT_NUM=$(echo "$BASE_TAG" | sed -n 's/.*-test\([0-9]*\)$/\1/p')
+        if [[ -z "$CURRENT_NUM" ]]; then
+            CURRENT_NUM=0
+        fi
+        NEXT_NUM=$((CURRENT_NUM + 1))
+        TAGNAME="${MAIN_TAG}-test${NEXT_NUM}"
+    else
+        TAGNAME="${BASE_TAG}-test1"
+    fi
+
+    echo "$TAGNAME"
+}
+
+gttag(){
+    git fetch --all
+    ttag
+    echo $TAGNAME
+    tagIfNoTag $TAGNAME $(git branch --show-current)
+}
+
+
 utag(){
     git fetch --all --tags
     TAGNAME=$(git describe --tags --match uat-* | cut -f 1-2 -d "-"| xargs -n 1 svt -mode uat)
