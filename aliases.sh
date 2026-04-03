@@ -33,9 +33,8 @@ tagIfNoTag(){
     else
         echo "No matching tag found. Tagging with: $TAG"
         git tag "$TAG"
+        git push --tag "$3" || git tag -d "$TAG"
     fi
-
-    git push --tag "$3" || git tag -d "$TAG"
 }
 
 alias gtags='git describe --tags | cut -f 1-2 -d "-" '
