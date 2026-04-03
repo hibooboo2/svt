@@ -33,7 +33,7 @@ tagIfNoTag(){
     else
         echo "No matching tag found. Tagging with: $TAG"
         git tag "$TAG"
-        git push --tag "$3" 
+        git push origin $TAG --tag "$3"
         # || git tag -d "$TAG"
     fi
 }
