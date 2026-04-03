@@ -7,7 +7,6 @@ pull(){
 
 # Source this file
 tagIfNoTag(){
-    set +x
     CURRENT_BRANCH=$(git branch --show-current)
 
     if [[ "$CURRENT_BRANCH" != "$2" ]]; then
@@ -37,8 +36,6 @@ tagIfNoTag(){
         git push --tag "$3" 
         # || git tag -d "$TAG"
     fi
-
-    set -x
 }
 
 alias gtags='git describe --tags | cut -f 1-2 -d "-" '
