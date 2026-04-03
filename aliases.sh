@@ -14,13 +14,28 @@ tagIfNoTag(){
         return
     fi
 
-    if [ "$(git tag --points-at HEAD | wc -l)" -eq 0 ]; then
-        echo "No tags found on the current commit tagging with: $1"
-        git tag $1
+    TAG="$1"
+
+    # Extract last numeric segment and decrement
+    if [[ "$TAG" =~ ^(.*[^0-9])([0-9]+)$ ]]; then
+        PREFIX="${BASH_REMATCH[1]}"
+        NUM="${BASH_REMATCH[2]}"
+        PREV_TAG="${PREFIX}$((NUM - 1))"
     else
-        echo "Commit already tagged: $(git tag --points-at HEAD)"
+        PREV_TAG=""
     fi
-    git push --tag $3 || git tag -d $1
+
+    TAGS_ON_COMMIT=$(git tag --points-at HEAD)
+
+    if echo "$TAGS_ON_COMMIT" | grep -qx "$TAG" || \
+       { [[ -n "$PREV_TAG" ]] && echo "$TAGS_ON_COMMIT" | grep -qx "$PREV_TAG"; }; then
+        echo "Commit already tagged with: $TAG or $PREV_TAG"
+    else
+        echo "No matching tag found. Tagging with: $TAG"
+        git tag "$TAG"
+    fi
+
+    git push --tag "$3" || git tag -d "$TAG"
 }
 
 alias gtags='git describe --tags | cut -f 1-2 -d "-" '
