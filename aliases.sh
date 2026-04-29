@@ -41,7 +41,7 @@ alias gtags='git describe --tags | cut -f 1-2 -d "-" '
 
 ntag(){
     git fetch --all --tags
-    ALL_TAGS=$(git tag --list 'v*.*.*' | grep -v -- '-test' | sort -V)
+    ALL_TAGS=$(git tag --list 'v0.*.*' | grep -v -- '-test' | sort -V)
     LAST_TAG=$(echo "$ALL_TAGS" | tail -1)
     if [[ -z "$LAST_TAG" ]]; then
         LAST_TAG="v0.0.0"
