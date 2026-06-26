@@ -59,7 +59,7 @@ func main() {
 	var v Version
 	var v2 Version
 	switch *mode {
-	case "dev":
+	case "dev", "img":
 		if len(args) != 2 {
 
 		}
