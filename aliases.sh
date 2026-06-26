@@ -53,7 +53,7 @@ itag(){
 gitag(){
     itag
     echo $TAGNAME
-    echo tagIfNoTag $TAGNAME $(git branch --show-current) $1
+    tagIfNoTag $TAGNAME $(git branch --show-current) $1
 }
 
 ntag(){
