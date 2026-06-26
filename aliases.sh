@@ -51,9 +51,9 @@ itag(){
 }
 
 gitag(){
-    pull main
     itag
-    tagIfNoTag $TAGNAME main $1
+    echo $TAGNAME
+    tagIfNoTag $TAGNAME $(git branch --show-current) $1
 }
 
 ntag(){
