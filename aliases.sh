@@ -39,6 +39,23 @@ tagIfNoTag(){
 
 alias gtags='git describe --tags | cut -f 1-2 -d "-" '
 
+itag(){
+    git fetch --all --tags
+    ALL_TAGS=$(git tag --list 'img-0.*.*' | sort -V)
+    LAST_TAG=$(echo "$ALL_TAGS" | tail -1)
+    if [[ -z "$LAST_TAG" ]]; then
+        LAST_TAG="img-0.0.0"
+    fi
+    TAGNAME=$(svt -mode img "$LAST_TAG" img-0.0.1)
+    echo $TAGNAME
+}
+
+gitag(){
+    pull main
+    itag
+    tagIfNoTag $TAGNAME main $1
+}
+
 ntag(){
     git fetch --all --tags
     ALL_TAGS=$(git tag --list 'v0.*.*' | grep -v -- '-test' | sort -V)
@@ -115,4 +132,10 @@ gmtag(){
     pull main
     ntag
     tagIfNoTag $TAGNAME main $1
+}
+
+newMR(){
+    repo=$(basename $(pwd))
+    branch=$(git branch | grep '\*' | cut -f 2 -d ' ')
+    echo https://git.nops.ftr.com/raven/services/$repo/-/merge_requests/new?merge_request%5Bsource_branch%5D=$branch
 }

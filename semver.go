@@ -21,7 +21,13 @@ func (sv SemVer) Version(v ...Version) Version {
 		v = append(v, SemVer("0.0.1"))
 	}
 	verToAdd, _ := v[0].(SemVer)
-	return MakeNewSemVer(sv.MajorAdd(verToAdd.Major()), sv.MinorAdd(verToAdd.Minor()), sv.PatchAdd(verToAdd.Patch()))
+
+	mode := "dev"
+	if strings.HasPrefix(string(sv), "img-") {
+		mode = "img"
+	}
+
+	return MakeNewSemVer(sv.MajorAdd(verToAdd.Major()), sv.MinorAdd(verToAdd.Minor()), sv.PatchAdd(verToAdd.Patch()), mode)
 }
 
 func (sv SemVer) MajorAdd(toAdd int) int {
@@ -31,6 +37,9 @@ func (sv SemVer) MajorAdd(toAdd int) int {
 func (sv SemVer) Major() int {
 	parts := MustSemVer(sv)
 	version := strings.TrimPrefix(parts[0], "v")
+	if strings.HasPrefix(version, "img-") {
+		version = strings.TrimPrefix(parts[0], "img-")
+	}
 	v, err := strconv.Atoi(version)
 	if err != nil {
 		panic(fmt.Errorf("failed to parse number from %q: %w", version, err))
@@ -46,7 +55,7 @@ func (sv SemVer) Minor() int {
 	parts := MustSemVer(sv)
 	v, err := strconv.Atoi(parts[1])
 	if err != nil {
-		panic(fmt.Errorf("failed to parse number from %q: %w", err))
+		panic(fmt.Errorf("failed to parse number from %q: %w", parts[1], err))
 	}
 	return v
 }
@@ -59,11 +68,18 @@ func (sv SemVer) Patch() int {
 	parts := MustSemVer(sv)
 	v, err := strconv.Atoi(parts[2])
 	if err != nil {
-		panic(fmt.Errorf("failed to parse number from %q: %w", err))
+		panic(fmt.Errorf("failed to parse number from %q: %w", parts[2], err))
 	}
 	return v
 }
 
-func MakeNewSemVer(maj, min, patch int) SemVer {
-	return SemVer(fmt.Sprintf("v%d.%d.%d", maj, min, patch))
+func MakeNewSemVer(maj, min, patch int, verType string) SemVer {
+	switch verType {
+	case "dev":
+		return SemVer(fmt.Sprintf("v%d.%d.%d", maj, min, patch))
+	case "img":
+		return SemVer(fmt.Sprintf("img-%d.%d.%d", maj, min, patch))
+	default:
+		panic("Invalid ver type: " + verType)
+	}
 }

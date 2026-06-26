@@ -10,7 +10,7 @@ import (
 
 func main() {
 	lastTag := flag.Bool("last-tag", false, "the last tag")
-	mode := flag.String("mode", "dev", "mode is what kind of version system you want to increment valid choices are ['dev','uat','prod']")
+	mode := flag.String("mode", "dev", "mode is what kind of version system you want to increment valid choices are ['dev','uat','prod','img']")
 	flag.Parse()
 
 	args := flag.Args()
@@ -39,6 +39,8 @@ func main() {
 				v = UAT(line)
 			case "prod":
 				v = PROD(line)
+			case "img":
+				v = SemVer(line[len("img-"):])
 			default:
 				panic("Invalid mode")
 			}
