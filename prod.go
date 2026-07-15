@@ -10,7 +10,11 @@ import (
 type PROD string
 
 func (p PROD) Version(_ ...Version) Version {
-	parts := strings.Split(string(p), "-")
+	parts := []string{string(p[0]), string(p[1:])}
+	if parts[0] != "" {
+		parts = strings.Split(string(p), "-")
+	}
+
 	if len(parts) != 2 {
 		return NewProdTag(1)
 	}
