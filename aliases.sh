@@ -118,7 +118,7 @@ gutag(){
 
 ptag(){
     git fetch --all --tags
-    TAGNAME=$(git tag --list | grep -E '^r-[0-9]{8}\.[0-9]+$' | sort -V | tail -1 | xargs -n 1 svt -mode prod)
+    TAGNAME=$(git tag --list | grep -E '^r[0-9]{8}\.[0-9]+$' | sort -V | tail -1 | xargs -n 1 svt -mode prod)
     echo $TAGNAME
 }
 
