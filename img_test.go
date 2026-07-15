@@ -3,7 +3,7 @@ package main
 import "testing"
 
 func TestImg(t *testing.T) {
-	tag := PROD("img-20260715.1")
+	tag := PROD("img-20260715.2")
 
 	var v2 Version
 
