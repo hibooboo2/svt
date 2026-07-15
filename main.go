@@ -59,19 +59,25 @@ func main() {
 	var v Version
 	var v2 Version
 	switch *mode {
-	case "dev", "img":
-		if len(args) != 2 {
-
+	case "dev":
+		if len(os.Args) < 2 {
+			panic(args)
 		}
 		v = SemVer(args[0])
 		v2 = SemVer(args[1])
 	case "uat":
 		v = UAT(args[0])
-	case "prod":
+	case "prod", "img":
 		v = PROD(args[0])
 	}
 	v = v.Version(v2)
-	fmt.Println(v)
+	switch *mode {
+	case "img":
+		imgTag := fmt.Sprintf("%s", v)
+		fmt.Printf("img-%s", imgTag[1:])
+	default:
+		fmt.Println(v)
+	}
 }
 
 type Version interface {

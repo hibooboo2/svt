@@ -46,7 +46,7 @@ itag(){
     if [[ -z "$LAST_TAG" ]]; then
         LAST_TAG="img-0.0.0"
     fi
-    TAGNAME=$(svt -mode img "$LAST_TAG" img-0.0.1)
+    TAGNAME=$(svt -mode img "$LAST_TAG")
     echo $TAGNAME
 }
 
