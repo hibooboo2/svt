@@ -10,11 +10,14 @@ import (
 type PROD string
 
 func (p PROD) Version(_ ...Version) Version {
-	parts := []string{string(p[0]), string(p[1:])}
+	parts := strings.Split(string(p), "-")
 	if len(parts) != 2 {
 		return NewProdTag(1)
 	}
-	if parts[0] != "r" {
+	switch parts[0] {
+	case "r":
+	case "img":
+	default:
 		return NewProdTag(1)
 	}
 	parts = strings.Split(parts[1], ".")

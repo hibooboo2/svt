@@ -41,10 +41,10 @@ alias gtags='git describe --tags | cut -f 1-2 -d "-" '
 
 itag(){
     git fetch --all --tags
-    ALL_TAGS=$(git tag --list 'img-0.*.*' | sort -V)
+    ALL_TAGS=$(git tag --list '^img-\d{8}\.\d+$' | sort -V)
     LAST_TAG=$(echo "$ALL_TAGS" | tail -1)
     if [[ -z "$LAST_TAG" ]]; then
-        LAST_TAG="img-0.0.0"
+        LAST_TAG=`svt -mode img img-0.0`
     fi
     TAGNAME=$(svt -mode img "$LAST_TAG")
     echo $TAGNAME
