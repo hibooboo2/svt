@@ -11,7 +11,7 @@ type PROD string
 
 func (p PROD) Version(_ ...Version) Version {
 	parts := []string{string(p[0]), string(p[1:])}
-	if parts[0] != "" {
+	if parts[0] != "r" {
 		parts = strings.Split(string(p), "-")
 	}
 
