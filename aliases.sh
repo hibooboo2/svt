@@ -25,6 +25,11 @@ tagIfNoTag(){
         PREV_TAG=""
     fi
 
+    if git rev-parse "$TAG" >/dev/null 2>&1; then
+        echo "Tag $TAG already exists globally."
+        return
+    fi
+
     TAGS_ON_COMMIT=$(git tag --points-at HEAD)
 
     if echo "$TAGS_ON_COMMIT" | grep -qx "$TAG" || \
@@ -106,7 +111,7 @@ gttag(){
 
 utag(){
     git fetch --all --tags
-    TAGNAME=$(git describe --tags --match uat-* | cut -f 1-2 -d "-"| xargs -n 1 svt -mode uat)
+    TAGNAME=$(git tag --list | grep -E '^uat-[0-9]{8}\.[0-9]+$' | sort -V | tail -1 | xargs -n 1 svt -mode uat)
     echo $TAGNAME
 }
 
