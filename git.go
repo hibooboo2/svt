@@ -3,11 +3,12 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/hibooboo2/svt/exec"
 )
 
 var tagPatterns = map[string]*regexp.Regexp{
@@ -155,7 +156,7 @@ func symLinkBin() {
 		os.Exit(1)
 	}
 
-	targetDir := filepath.Join(home, ".local", "bin")
+	targetDir := filepath.Join(home, "go", "bin")
 	if err := os.MkdirAll(targetDir, 0755); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to create %s: %v\n", targetDir, err)
 		os.Exit(1)

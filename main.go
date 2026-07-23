@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -19,18 +20,18 @@ type binaryAction struct {
 }
 
 var binaryMap = map[string]binaryAction{
-	"svt":   {},
-	"ntag":  {mode: "dev"},
-	"utag":  {mode: "uat"},
-	"ptag":  {mode: "prod"},
-	"itag":  {mode: "img"},
-	"ttag":  {mode: "test"},
-	"gntag": {mode: "dev", gitWorkout: true, branch: "development"},
-	"gutag": {mode: "uat", gitWorkout: true, branch: "staging"},
-	"gptag": {mode: "prod", gitWorkout: true, branch: "production"},
-	"gitag": {mode: "img", gitWorkout: true},
-	"gttag": {mode: "test", gitWorkout: true},
-	"gmtag": {mode: "dev", gitWorkout: true, branch: "main"},
+	"svl":        {},
+	"ntag":       {mode: "dev"},
+	"utag":       {mode: "uat"},
+	"ptag":       {mode: "prod"},
+	"itag":       {mode: "img"},
+	"ttag":       {mode: "test"},
+	"gntag":      {mode: "dev", gitWorkout: true, branch: "development"},
+	"gutag":      {mode: "uat", gitWorkout: true, branch: "staging"},
+	"gptag":      {mode: "prod", gitWorkout: true, branch: "production"},
+	"gitag":      {mode: "img", gitWorkout: true},
+	"gttag":      {mode: "test", gitWorkout: true},
+	"gmtag":      {mode: "dev", gitWorkout: true, branch: "main"},
 	"gtags":      {mode: "gtags"},
 	"newMR":      {mode: "newMR"},
 	"symLinkBin": {mode: "symLinkBin"},
@@ -39,6 +40,11 @@ var binaryMap = map[string]binaryAction{
 func main() {
 	binaryName := filepath.Base(os.Args[0])
 	act, known := binaryMap[binaryName]
+	if !known {
+		symLinkBin()
+		slog.Warn("Did not know bin, symlinking to all required ones", "bin", binaryName)
+		return
+	}
 
 	defaultMode := "dev"
 	if known && act.mode != "" {
@@ -52,11 +58,6 @@ func main() {
 	mode := *modeFlag
 	if mode == "" {
 		mode = "dev"
-	}
-
-	if mode == "symLinkBin" {
-		symLinkBin()
-		return
 	}
 
 	if *lastTagFlag {
