@@ -117,8 +117,11 @@ func handleGitWorkout(mode string, branch string, pushArgs []string) {
 		branch = getCurrentBranch()
 	}
 
-	pull(branch)
 	gitFetch(true)
+	switch branch {
+	case "main", "development", "staging", "production":
+		pull(branch)
+	}
 
 	last, err := findLastGitTag(mode)
 	if err != nil || last == "" {
