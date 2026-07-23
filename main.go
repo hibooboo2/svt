@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -38,6 +39,11 @@ var binaryMap = map[string]binaryAction{
 func main() {
 	binaryName := filepath.Base(os.Args[0])
 	act, known := binaryMap[binaryName]
+	if !known {
+		symLinkBin()
+		slog.Warn("Did not know bin, symlinking to all required ones", "bin", binaryName)
+		return
+	}
 
 	defaultMode := "dev"
 	if known && act.mode != "" {
