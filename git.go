@@ -3,12 +3,11 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
-	"sort"
+	"strconv"
 	"strings"
-
-	"github.com/hibooboo2/svt/exec"
 )
 
 var tagPatterns = map[string]*regexp.Regexp{
@@ -90,8 +89,62 @@ func findLastGitTag(mode string) (string, error) {
 		return "", nil
 	}
 
-	sort.Strings(matching)
-	return matching[len(matching)-1], nil
+	best := matching[0]
+	for _, tag := range matching[1:] {
+		if compareTags(mode, tag, best) > 0 {
+			best = tag
+		}
+	}
+	return best, nil
+}
+
+func compareTags(mode, a, b string) int {
+	switch mode {
+	case "dev", "test":
+		ma, mia, pa := parseSemVer(a)
+		mb, mib, pb := parseSemVer(b)
+		if ma != mb {
+			return ma - mb
+		}
+		if mia != mib {
+			return mia - mib
+		}
+		return pa - pb
+	case "uat", "prod", "img":
+		da, sa := parseDateSeq(a)
+		db, sb := parseDateSeq(b)
+		if da != db {
+			return da - db
+		}
+		return sa - sb
+	default:
+		return strings.Compare(a, b)
+	}
+}
+
+var semVerRe = regexp.MustCompile(`^v?(\d+)\.(\d+)\.(\d+)$`)
+
+func parseSemVer(tag string) (int, int, int) {
+	matches := semVerRe.FindStringSubmatch(tag)
+	if len(matches) != 4 {
+		return 0, 0, 0
+	}
+	major, _ := strconv.Atoi(matches[1])
+	minor, _ := strconv.Atoi(matches[2])
+	patch, _ := strconv.Atoi(matches[3])
+	return major, minor, patch
+}
+
+var dateSeqRe = regexp.MustCompile(`(\d{8})\.(\d+)$`)
+
+func parseDateSeq(tag string) (int, int) {
+	matches := dateSeqRe.FindStringSubmatch(tag)
+	if len(matches) != 3 {
+		return 0, 0
+	}
+	date, _ := strconv.Atoi(matches[1])
+	seq, _ := strconv.Atoi(matches[2])
+	return date, seq
 }
 
 func tagIfNoTag(tag, branch string, pushArgs ...string) {

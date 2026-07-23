@@ -4,11 +4,9 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sort"
 	"strings"
 	"time"
 )
@@ -40,11 +38,6 @@ var binaryMap = map[string]binaryAction{
 func main() {
 	binaryName := filepath.Base(os.Args[0])
 	act, known := binaryMap[binaryName]
-	if !known {
-		symLinkBin()
-		slog.Warn("Did not know bin, symlinking to all required ones", "bin", binaryName)
-		return
-	}
 
 	defaultMode := "dev"
 	if known && act.mode != "" {
@@ -216,8 +209,13 @@ func handleLastTag(mode string) {
 		return
 	}
 
-	sort.Strings(tags)
-	fmt.Println(tags[len(tags)-1])
+	best := tags[0]
+	for _, tag := range tags[1:] {
+		if compareTags(mode, tag, best) > 0 {
+			best = tag
+		}
+	}
+	fmt.Println(best)
 }
 
 func handleGtags() {
