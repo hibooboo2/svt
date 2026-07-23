@@ -117,9 +117,9 @@ func handleGitWorkout(mode string, branch string, pushArgs []string) {
 		branch = getCurrentBranch()
 	}
 
-	gitFetch(true)
-	switch branch {
-	case "main", "development", "staging", "production":
+	switch mode {
+	case "dev", "uat", "prod":
+		gitFetch(true)
 		pull(branch)
 	}
 
