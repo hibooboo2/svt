@@ -12,6 +12,7 @@ import (
 
 var tagPatterns = map[string]*regexp.Regexp{
 	"dev":  regexp.MustCompile(`^v\d+\.\d+\.\d+$`),
+	"test": regexp.MustCompile(`^v\d+\.\d+\.\d+(-test\d+)?$`),
 	"uat":  regexp.MustCompile(`^uat-\d{8}\.\d+$`),
 	"prod": regexp.MustCompile(`^r\d{8}\.\d+$`),
 	"img":  regexp.MustCompile(`^img-\d{8}\.\d+$`),
@@ -58,9 +59,6 @@ func getCurrentBranch() string {
 }
 
 func findLastGitTag(mode string) (string, error) {
-	if mode == "test" {
-		mode = "dev"
-	}
 	pattern, ok := tagPatterns[mode]
 	if !ok {
 		return "", fmt.Errorf("unknown mode: %s", mode)
@@ -75,9 +73,6 @@ func findLastGitTag(mode string) (string, error) {
 	for _, tag := range strings.Split(strings.TrimSpace(string(out)), "\n") {
 		tag = strings.TrimSpace(tag)
 		if tag == "" {
-			continue
-		}
-		if mode == "dev" && strings.Contains(tag, "-test") {
 			continue
 		}
 		if pattern.MatchString(tag) {
@@ -100,9 +95,9 @@ func findLastGitTag(mode string) (string, error) {
 
 func compareTags(mode, a, b string) int {
 	switch mode {
-	case "dev", "test":
-		ma, mia, pa := parseSemVer(a)
-		mb, mib, pb := parseSemVer(b)
+	case "dev":
+		ma, mia, pa, _ := parseSemVer(a)
+		mb, mib, pb, _ := parseSemVer(b)
 		if ma != mb {
 			return ma - mb
 		}
@@ -110,6 +105,19 @@ func compareTags(mode, a, b string) int {
 			return mia - mib
 		}
 		return pa - pb
+	case "test":
+		ma, mia, pa, ta := parseSemVer(a)
+		mb, mib, pb, tb := parseSemVer(b)
+		if ma != mb {
+			return ma - mb
+		}
+		if mia != mib {
+			return mia - mib
+		}
+		if pa != pb {
+			return pa - pb
+		}
+		return ta - tb
 	case "uat", "prod", "img":
 		da, sa := parseDateSeq(a)
 		db, sb := parseDateSeq(b)
@@ -122,17 +130,21 @@ func compareTags(mode, a, b string) int {
 	}
 }
 
-var semVerRe = regexp.MustCompile(`^v?(\d+)\.(\d+)\.(\d+)$`)
+var semVerRe = regexp.MustCompile(`^v?(\d+)\.(\d+)\.(\d+)(?:-test(\d+))?$`)
 
-func parseSemVer(tag string) (int, int, int) {
+func parseSemVer(tag string) (int, int, int, int) {
 	matches := semVerRe.FindStringSubmatch(tag)
-	if len(matches) != 4 {
-		return 0, 0, 0
+	if len(matches) < 4 {
+		return 0, 0, 0, 0
 	}
 	major, _ := strconv.Atoi(matches[1])
 	minor, _ := strconv.Atoi(matches[2])
 	patch, _ := strconv.Atoi(matches[3])
-	return major, minor, patch
+	testNum := 0
+	if len(matches) >= 5 && matches[4] != "" {
+		testNum, _ = strconv.Atoi(matches[4])
+	}
+	return major, minor, patch, testNum
 }
 
 var dateSeqRe = regexp.MustCompile(`(\d{8})\.(\d+)$`)
@@ -209,7 +221,7 @@ func symLinkBin() {
 		os.Exit(1)
 	}
 
-	targetDir := filepath.Join(home, "go", "bin")
+	targetDir := filepath.Join(home, ".local", "bin")
 	if err := os.MkdirAll(targetDir, 0755); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to create %s: %v\n", targetDir, err)
 		os.Exit(1)

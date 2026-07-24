@@ -85,7 +85,7 @@ func handleTagGeneration(mode string, args []string) {
 	if mode == "test" {
 		if len(args) == 0 {
 			gitFetch(true)
-			last, _ := findLastGitTag("dev")
+			last, _ := findLastGitTag("test")
 			if last == "" {
 				last = "v0.0.0"
 			}
@@ -116,11 +116,8 @@ func handleGitWorkout(mode string, branch string, pushArgs []string) {
 		branch = getCurrentBranch()
 	}
 
-	switch mode {
-	case "dev", "uat", "prod":
-		gitFetch(true)
-		pull(branch)
-	}
+	pull(branch)
+	gitFetch(true)
 
 	last, err := findLastGitTag(mode)
 	if err != nil || last == "" {
