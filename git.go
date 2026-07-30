@@ -11,8 +11,8 @@ import (
 )
 
 var tagPatterns = map[string]*regexp.Regexp{
-	"dev":  regexp.MustCompile(`^v\d+\.\d+\.\d+$`),
-	"test": regexp.MustCompile(`^v\d+\.\d+\.\d+(-test\d+)?$`),
+	"dev":  regexp.MustCompile(`^v[01]\.\d+\.\d+$`),
+	"test": regexp.MustCompile(`^v[01]\.\d+\.\d+(-test\d+)?$`),
 	"uat":  regexp.MustCompile(`^uat-\d{8}\.\d+$`),
 	"prod": regexp.MustCompile(`^r\d{8}\.\d+$`),
 	"img":  regexp.MustCompile(`^img-\d{8}\.\d+$`),
