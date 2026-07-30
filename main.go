@@ -52,6 +52,7 @@ func main() {
 
 	lastTagFlag := flag.Bool("last-tag", false, "find the last tag from stdin")
 	modeFlag := flag.String("mode", defaultMode, "version mode: dev, uat, prod, img, test")
+	noVerifyFlag := flag.Bool("no-verify", false, "skip git hooks when pushing the tag")
 	flag.Parse()
 
 	mode := *modeFlag
@@ -74,7 +75,11 @@ func main() {
 	}
 
 	if known && act.gitWorkout {
-		handleGitWorkout(mode, act.branch, flag.Args())
+		pushArgs := flag.Args()
+		if *noVerifyFlag {
+			pushArgs = append([]string{"--no-verify"}, pushArgs...)
+		}
+		handleGitWorkout(mode, act.branch, pushArgs)
 		return
 	}
 
